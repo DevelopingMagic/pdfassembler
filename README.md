@@ -25,8 +25,9 @@ If you want to simplify editing existing PDFs in a browser, I haven't found that
 
 If you want to learn more about logical structure of PDFs, I recommend O'Reilly's [PDF Explained](http://shop.oreilly.com/product/0636920021483.do). If you use this library, pdf.js and PDF Assembler will care of reading and writing the raw bytes of the PDF, so you can skip to Chapter 4, "Document Structure":
 
-![x](https://www.safaribooksonline.com/library/view/pdf-explained/9781449321581/httpatomoreillycomsourceoreillyimages952073.png)
-Figure 4-1 shows the logical structure of a typical document. (PDF Explained, Chapter 4, page 39)
+![logical structure of a typical document](https://www.safaribooksonline.com/library/view/pdf-explained/9781449321581/httpatomoreillycomsourceoreillyimages952073.png)
+
+Figure 4-1 shows the logical structure of a typical document. ([PDF Explained]((http://shop.oreilly.com/product/0636920021483.do)), Chapter 4, page 39)
 
 
 ## How it works - the PDF structure object

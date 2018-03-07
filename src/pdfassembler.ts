@@ -256,7 +256,7 @@ export class PDFAssembler {
   }
 
   removeRootEntries(entries?: string[]): Promise<any> {
-    return this.pdfTree.then(tree => {
+    return this.pdfObject.then(tree => {
       Object.keys(tree['/Root'])
         .filter(key => entries && entries.length ?
           // if specific entries specified, remove them

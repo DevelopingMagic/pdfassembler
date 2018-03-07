@@ -1,9 +1,11 @@
 # Development
+src
 compiled
 node_modules
 *.log
 
 # Config
+tsconfig.json
 .angular-cli.json
 .editorconfig
 .firebaserc

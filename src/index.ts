@@ -1,1 +1,1 @@
-export * from './pdfassembler';
+export { PDFAssembler, TypedArray, BinaryFile } from './pdfassembler';

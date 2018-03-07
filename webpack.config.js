@@ -2,7 +2,7 @@ const nodeExternals = require('webpack-node-externals');
 const path = require('path');
 
 module.exports = {
-  entry: './src/pdfassembler.ts',
+  entry: './src/index.ts',
   module: {
     rules: [
       {
@@ -16,7 +16,7 @@ module.exports = {
     extensions: [ '.tsx', '.ts', '.js' ]
   },
   output: {
-    filename: 'pdfassembler.js',
+    filename: 'index.js',
     path: path.resolve(__dirname, 'dist')
   },
   externals: [ nodeExternals() ]

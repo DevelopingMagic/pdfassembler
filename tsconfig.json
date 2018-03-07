@@ -6,12 +6,12 @@
     "moduleResolution": "node",
     "typeRoots": [ "node_modules/@types" ],
     "experimentalDecorators": true,
-    "outDir": "",
+    "outDir": "./dist",
     "removeComments": true,
     "declaration": true,
     "sourceMap": true,
     "emitDecoratorMetadata": true
   },
-  "files": [ "src/pdfassembler.ts" ],
+  "files": [ "src/index.ts" ],
   "exclude": [ "node_modules" ]
 }
