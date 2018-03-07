@@ -1,0 +1,30 @@
+# Development
+compiled
+node_modules
+*.log
+
+# Config
+.angular-cli.json
+.editorconfig
+.firebaserc
+.gitignore
+.npmignore
+firebase.json
+tslint.json
+typedoc.json
+
+# IDE
+.idea
+.project
+.settings
+.idea/*
+*.iml
+*.swp
+
+# misc
+npm-debug.log
+
+# System Files
+.DS_Store
+Desktop.ini
+Thumbs.db

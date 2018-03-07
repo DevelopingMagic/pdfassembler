@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "lib": [ "es2017", "dom" ],
+    "module": "commonjs",
+    "target": "es5",
+    "moduleResolution": "node",
+    "typeRoots": [ "node_modules/@types" ],
+    "experimentalDecorators": true,
+    "outDir": "",
+    "removeComments": true,
+    "declaration": true,
+    "sourceMap": true,
+    "emitDecoratorMetadata": true
+  },
+  "files": [ "src/pdfassembler.ts" ],
+  "exclude": [ "node_modules" ]
+}

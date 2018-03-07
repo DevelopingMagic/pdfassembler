@@ -1,0 +1,50 @@
+{
+  "name": "pdfassembler",
+  "version": "0.1.0-beta.1",
+  "description": "The missing piece to edit PDF files directly in the browser. Disassembles PDFs to edtable JavaScript objects, then assembles them back into PDF files.",
+  "author": "David Schnell-Davis",
+  "license": "MIT",
+  "homepage": "https://github.com/dschnelldavis/pdfAssembler#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dschnelldavis/pdfAssembler.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dschnelldavis/pdfAssembler/issues"
+  },
+  "keywords": [
+    "pdf",
+    "edit",
+    "modify",
+    "create",
+    "pdf.js"
+  ],
+  "main": "dist/pdfassembler.js",
+  "typings": "dist/pdfassembler.d.ts",
+  "scripts": {
+    "prebuild": "rimraf dist/*",
+    "build": "webpack --mode production || echo build failed :\\(",
+    "release": "standard-version && npm pack",
+    "publish": "npm publish"
+  },
+  "dependencies": {
+    "pako": "^1.0.6",
+    "pdfjs-dist": "^2.0.419"
+  },
+  "devDependencies": {
+    "@types/es6-promise": "^3.3.0",
+    "@types/node": "^9.4.6",
+    "@types/pako": "^1.0.0",
+    "@types/pdf": "0.0.31",
+    "es6-promise": "^4.2.4",
+    "rimraf": "^2.6.2",
+    "standard-version": "^4.2.0",
+    "ts-loader": "^4.0.1",
+    "tslint": "^5.6.0",
+    "tslint-loader": "^3.5.3",
+    "typescript": "^2.7.2",
+    "webpack": "^4.1.0",
+    "webpack-cli": "^2.0.10",
+    "webpack-node-externals": "^1.6.0"
+  }
+}
