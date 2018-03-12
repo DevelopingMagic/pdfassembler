@@ -52,7 +52,7 @@ export class PDFAssembler {
             delete this.pdfTree['/Info']['/IsAcroFormPresent'];
             delete this.pdfTree['/Info']['/IsXFAPresent'];
             delete this.pdfTree['/Info']['/PDFFormatVersion'];
-            this.pdfTree['/Info']['/Producer'] = '(pdfAssembler (www.pdfcircus.com))';
+            this.pdfTree['/Info']['/Producer'] = '(pdfAssembler — www.pdfcircus.com)';
             this.pdfTree['/Info']['/ModDate'] = '(' + this.toPdfDate() + ')';
           })
           .then(() => this.flattenPageTree());
@@ -162,7 +162,7 @@ export class PDFAssembler {
       return arrayNode;
     } else if (typeof node === 'object' && node !== null) {
       const objectNode: any = Object.create(null);
-      let source = null, isStream = false, isDecryptStream = false;
+      let source = null;
       const nodeMap = node.dict instanceof Dict ? node.dict._map : node instanceof Dict ? node._map : null;
       if (nodeMap) {
         Object.keys(nodeMap).forEach((key) => objectNode[`/${key}`] =
@@ -186,16 +186,14 @@ export class PDFAssembler {
           const checkStream = (streamSource) => {
             if (streamSource instanceof Stream || streamSource instanceof DecryptStream) {
               source = streamSource;
-              isStream = true;
-              isDecryptStream = streamSource instanceof DecryptStream;
             }
           };
-          if (!isStream) { checkStream(node); }
-          if (!isStream) { checkStream(node.stream); }
-          if (!isStream) { checkStream(node.stream && node.stream.str); }
-          if (!isStream) { checkStream(node.str); }
-          if (!isStream) { checkStream(node.str && node.str.str); }
-          if (isStream) {
+          if (!source) { checkStream(node); }
+          if (!source) { checkStream(node.stream); }
+          if (!source) { checkStream(node.stream && node.stream.str); }
+          if (!source) { checkStream(node.str); }
+          if (!source) { checkStream(node.str && node.str.str); }
+          if (source) {
             source.reset();
             objectNode.stream = source.getBytes();
           }
@@ -205,7 +203,7 @@ export class PDFAssembler {
         if (contents || objectNode['/Subtype'] === '/XML' ||
           (objectNode.stream && objectNode.stream.every(byte => byte < 128))
         ) {
-          if (contents) { objectNode.contents = objectNode.stream; }
+          // if (contents) { objectNode.contents = objectNode.stream; }
           // TODO: remove unneeded spaces in command streams
           // (but NOT in text strings inside command streams)
           // --or-- split command streams into command arrays?
@@ -234,6 +232,7 @@ export class PDFAssembler {
   }
 
   toPdfDate(jsDate = new Date()) {
+    if (!(jsDate instanceof Date)) { return null; }
     const timezoneOffset = jsDate.getTimezoneOffset();
     return 'D:' +
       jsDate.getFullYear() +
@@ -248,6 +247,8 @@ export class PDFAssembler {
   }
 
   fromPdfDate(pdfDate) {
+    if (pdfDate[0] === '(' && pdfDate[pdfDate.length - 1] === ')') { pdfDate = pdfDate.slice(1, -1); }
+    if (pdfDate.slice(0, 2) !== 'D:') { return null; }
     const part = (start, end, add = 0) =>  parseInt(pdfDate.slice(start, end), 10) + add;
     return new Date(
       part(2, 6), part(6, 8, -1), part(8, 10),    // year, month, day
@@ -351,7 +352,7 @@ export class PDFAssembler {
         node.filter(toReset).forEach(item => this.resetObjectIds(item));
       } else {
         if (typeof node.num === 'number' || node.stream ||
-          ['/Root', '/Pages', '/OCG'].includes(node['/Type'])
+          ['/Catalog', '/Pages', '/OCG'].includes(node['/Type'])
         ) {
           Object.assign(node, { num: this.nextNodeNum++, gen: 0 });
         }
@@ -453,8 +454,8 @@ export class PDFAssembler {
             if (jsObject.stream && jsObject.stream.length) {
               if (this.compress && !jsObject['/Filter']) {
 
-                // If stream is not already compressed, and long enough, compress it
-                const compressedStream = deflate(jsObject.stream);
+                // If stream is not already compressed, compress it
+                const compressedStream = deflate(arraysToBytes([jsObject.stream]));
 
                 // but use compressed version only if it is smaller overall
                 // (+ 19 for additional '/Filter/FlateDecode' dict entry)

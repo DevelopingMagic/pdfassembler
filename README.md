@@ -23,7 +23,7 @@ If you want to simplify editing existing PDFs on a server, you can use command l
 
 If you want to simplify editing existing PDFs in a browser, I haven't found that library yet. This library helps, but still requires a good understanding of how the logical structure of a PDF works.
 
-If you want to learn more about logical structure of PDFs, I recommend O'Reilly's [PDF Explained](http://shop.oreilly.com/product/0636920021483.do). If you use this library, pdf.js and PDF Assembler will care of reading and writing the raw bytes of the PDF, so you can skip to Chapter 4, "Document Structure":
+If you want to learn more about logical structure of PDFs, I recommend O'Reilly's [PDF Explained](http://shop.oreilly.com/product/0636920021483.do). If you use this library, pdf.js and PDF Assembler will take care of reading and writing the raw bytes of the PDF, so you can skip to Chapter 4, "Document Structure":
 
 ![logical structure of a typical document](https://www.safaribooksonline.com/library/view/pdf-explained/9781449321581/httpatomoreillycomsourceoreillyimages952073.png)
 
@@ -123,12 +123,6 @@ Next, import pdfassembler in your project, like so:
 PDFAssembler = require('pdfassembler').PDFAssembler;
 ```
 
-or, in ES6:
-
-```javascript
-include { PDFAssembler } from ('pdfassembler');
-```
-
 ### Loading a PDF
 
 To us PDF Assembler, you must create a new PDFAssembler instance and initialize it, either with your own PDF structure object:
@@ -191,9 +185,9 @@ newPdf.compress = false;
 newPdf.indent = true;
 ```
 
-| option        | default | description   |
-|---------------|---------|---------------|
-| indent        | false   | Indents output to make it easier to read if you open the PDF in a text editor to look at the structure. Accepts a String or Number, similar to the space parameter in [JSON.stringify](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
-| compress      | true    | Compresses streams.
-| groupPages    | true    | Groups pages.
-| pageGroupSize | 16      | Size of largest page group.
+| option        | default | description                                |
+|---------------|---------|--------------------------------------------|
+| indent        | false   | If true, indents output to make it easier to read if you open the PDF in a text editor. Accepts a String or Number, similar to the space parameter in [JSON.stringify](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).|
+| compress      | true    | If true, compresses streams in output PDF. |
+| groupPages    | true    | If true, groups pages in output PDF.       |
+| pageGroupSize | 16      | Sets size of largest page group. (Has no effect if groupPages is false.) |
