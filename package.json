@@ -1,16 +1,16 @@
 {
   "name": "pdfassembler",
-  "version": "0.1.0-beta.4",
+  "version": "0.1.0-beta.5",
   "description": "The missing piece to edit PDF files directly in the browser. Disassembles PDFs to edtable JavaScript objects, then assembles them back into PDF files.",
   "author": "David Schnell-Davis",
   "license": "MIT",
-  "homepage": "https://github.com/dschnelldavis/pdfAssembler#readme",
+  "homepage": "https://github.com/DevelopingMagic/pdf-assembler#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dschnelldavis/pdfAssembler.git"
+    "url": "git+https://github.com/DevelopingMagic/pdf-assembler.git"
   },
   "bugs": {
-    "url": "https://github.com/dschnelldavis/pdfAssembler/issues"
+    "url": "https://github.com/DevelopingMagic/pdf-assembler/issues"
   },
   "keywords": [
     "pdf",
@@ -28,7 +28,8 @@
   },
   "dependencies": {
     "pako": "^1.0.6",
-    "pdfjs-dist": "^2.0.428"
+    "pdfjs-dist": "^2.0.449",
+    "promise-queue": "^2.2.5"
   },
   "devDependencies": {
     "@types/es6-promise": "^3.3.0",
@@ -39,6 +40,6 @@
     "rimraf": "^2.6.2",
     "tslint": "^5.6.0",
     "typescript": "^2.7.2",
-    "uglify-js": "^3.3.14"
+    "uglify-js": "^3.3.16"
   }
 }

@@ -23,9 +23,6 @@ typedoc.json
 *.iml
 *.swp
 
-# misc
-npm-debug.log
-
 # System Files
 .DS_Store
 Desktop.ini
