@@ -1,19 +1,19 @@
 # PDF Assembler
 
-[![npm version](https://img.shields.io/npm/v/pdfassembler.svg?style=plastic)](https://www.npmjs.com/package/pdfassembler) [![npm downloads](https://img.shields.io/npm/dm/pdfassembler.svg?style=plastic)](https://www.npmjs.com/package/pdfassembler) [![GitHub MIT License](https://img.shields.io/github/license/dschnelldavis/pdfassembler.svg?style=social)](https://github.com/dschnelldavis/pdfassembler)
-[![Dependencies](https://david-dm.org/dschnelldavis/pdfassembler.svg)](https://david-dm.org/dschnelldavis/pdfassembler) [![devDependencies](https://david-dm.org/dschnelldavis/pdfassembler/dev-status.svg)](https://david-dm.org/dschnelldavis/pdfassembler?type=dev)
+[![npm version](https://img.shields.io/npm/v/pdfassembler.svg?style=plastic)](https://www.npmjs.com/package/pdfassembler) [![npm downloads](https://img.shields.io/npm/dm/pdfassembler.svg?style=plastic)](https://www.npmjs.com/package/pdfassembler) [![GitHub MIT License](https://img.shields.io/github/license/DevelopingMagic/pdf-assembler.svg?style=social)](https://github.com/DevelopingMagic/pdf-assembler)
+[![Dependencies](https://david-dm.org/DevelopingMagic/pdf-assembler.svg)](https://david-dm.org/DevelopingMagic/pdf-assembler) [![devDependencies](https://david-dm.org/DevelopingMagic/pdf-assembler/dev-status.svg)](https://david-dm.org/DevelopingMagic/pdf-assembler?type=dev)
 
 The missing piece to edit PDF files directly in the browser.
 
-PDF Assembler Disassembles PDF files into editable JavaScript objects, then assembles them back into PDF files, ready to save, download, or open.
+PDF Assembler disassembles PDF files into editable JavaScript objects, then assembles them back into PDF files, ready to save, download, or open.
 
 ## Overview
 
-Actually PDF Assembler itself only does one thing — it assembles PDF files (hence the name). However, it uses Mozilla's terrific [pdf.js](https://mozilla.github.io/pdf.js/) library to disassemble PDFs into JavaScript objects. Those objects can then be modified, after which PDF Assembler can re-assemble them back into PDFs, to display, save, or download.
+Actually PDF Assembler itself only does one thing — it assembles PDF files (hence the name). However, it uses Mozilla's terrific [pdf.js](https://mozilla.github.io/pdf.js/) library to disassemble PDFs into editable JavaScript objects, which PDF Assembler can then re-assemble back into PDF files to display, save, or download.
 
 ### Scope and future development
 
-PDF is a complex format (the [ISO standard describing it](https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf) is 756 pages long). So PDF Assembler makes working with PDFs (somewhat) simpler by separating the physical structure of a PDF from its logical structure. In the future, PDF Assembler will likely offer better defaults for generating PDFs, such as cross-reference streams and compressing objects, as well as more options, such as linearizing or encrypting the output PDF. However, editing features—like adding or editing pages, or even centering or wrapping text—are outside the scope of this library.
+PDF is a complex format (the [ISO standard describing it](https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf) is 756 pages long). So PDF Assembler makes working with PDFs (somewhat) simpler by separating the physical structure of a PDF from its logical structure. In the future, PDF Assembler will likely offer better defaults for generating PDFs, such as cross-reference streams and compressing objects, as well as more options, such as to linearize or encrypt the output PDF. However, anything unrelated to the physical structure—like adding or editing pages, or even centering or wrapping text—will need to be done by the calling application or another library.
 
 ### Alternatives
 
@@ -23,7 +23,7 @@ If you want to simplify editing existing PDFs on a server, you can use command l
 
 If you want to simplify editing existing PDFs in a browser, I haven't found that library yet. This library helps, but still requires a good understanding of how the logical structure of a PDF works.
 
-If you want to learn more about logical structure of PDFs, I recommend O'Reilly's [PDF Explained](http://shop.oreilly.com/product/0636920021483.do). If you use this library, pdf.js and PDF Assembler will take care of reading and writing the raw bytes of the PDF, so you can skip to Chapter 4, "Document Structure":
+To learn more about logical structure of PDFs, I recommend O'Reilly's [PDF Explained](http://shop.oreilly.com/product/0636920021483.do). If you use this library, pdf.js and PDF Assembler will take care of reading and writing the raw bytes of the PDF, so you can skip to Chapter 4, "Document Structure".
 
 ![logical structure of a typical document](https://www.safaribooksonline.com/library/view/pdf-explained/9781449321581/httpatomoreillycomsourceoreillyimages952073.png)
 
@@ -76,11 +76,11 @@ const helloWorldPdf = {
 }
 ```
 
-In this object, the main document catalog dictionary is '/Root' (and if there were a document information dictionary, it would be '/Info', because '/Root' and '/Info' are the names used to refer to these objects in the PDF trailer dictionary).
+In this object, the main document catalog dictionary is '/Root'. Optionally, a more complex pdf might also have a document information dictionary, '/Info', as well as many other pdf objects.
 
-There are a few small differences from a true PDF structure. For example, streams are _inside_ their dictionary objects in order to keep them together, even though in the final PDF they will be rendered immediately after their dictionaries instead.
+There are a few small differences from a true PDF structure. For example, streams are _inside_ their dictionary objects in order to keep them together, even though in the final PDF they will be rendered immediately after their dictionaries.
 
-Also, structure objects do not need to include stream '/Length' or page '/Parent' entries, because those entries will be automatically calculated and added when the PDF is assembled. (Adding them won't hurt anything, but there is no reason to, as they will just be overwritten.)
+Also, structure objects do not need to include stream '/Length' or page '/Parent' entries, because those entries will be automatically added when the PDF is assembled. (Adding them won't hurt anything, but there is no reason to, as they will just be recalculated and overwritten when the PDF is assembled.)
 
 ### Re-using shared dictionary items
 
@@ -117,7 +117,7 @@ So, if you're not scared off yet, and still want to use PDF Assembler in your pr
 npm install pdfassembler
 ```
 
-Next, import pdfassembler in your project, like so:
+Next, import PDF Assembler in your project, like so:
 
 ```javascript
 PDFAssembler = require('pdfassembler').PDFAssembler;
@@ -125,7 +125,7 @@ PDFAssembler = require('pdfassembler').PDFAssembler;
 
 ### Loading a PDF
 
-To us PDF Assembler, you must create a new PDFAssembler instance and initialize it, either with your own PDF structure object:
+To us PDF Assembler, you must create a new PDF Assembler instance and initialize it, either with your own PDF structure object:
 ```javascript
 // helloWorldPdf = the pdf object defined above
 const newPdf = new PDFAssembler(helloWorldPdf);
@@ -139,7 +139,7 @@ const newPdf = new PDFAssembler(binaryPDF);
 
 ### Editing the PDF object
 
-After you've created a new new PDFAssembler instance, you can request a promise with the PDF structure object, and then edit it.
+After you've created a new new PDF Assembler instance, you can request a promise with the PDF structure object, and then edit it.
 (Some of PDF Assembler's actions are asynchronous, so it's necessary to use a promise to make sure the PDF is fully loaded before you edit it.)
 
 For example, here is how to edit a PDF to remove all but the first page:
@@ -153,13 +153,13 @@ newPdf
 
 ### Problems with outlines and internal references
 
-PDF Assembler does a good job managing page contents, and will automatically discard unused contents from deleted pages, while still retaining any contents used on other pages. However, if a PDF contains an outline or internal references that refer to a deleted page, those will cause errors in the assembled PDF file. (The PDF may still open and display, but the PDF reader will probably show an error message.) As a somewhat crude (and hopefully temporary) solution for this, PDF Assembler provides a function for removing all non-printable data from the root catalog, like so:
+PDF Assembler does a good job managing page contents, and will automatically discard unused contents from deleted pages, while still retaining any contents used on other pages. However, if a PDF contains an outline or internal references that refer to a deleted page, those will cause errors in the assembled PDF file. (The PDF may still open and display, but probably with an error message.) As a somewhat crude (and hopefully temporary) solution for this, PDF Assembler provides a function for removing all non-printable data from the root catalog, like so:
 
 ```javascript
 newPdf.removeRootEntries();
 ```
 
-The trade-off is that after running removeRootEntries(), your assembled PDF is less likely to have errors, and may also be smaller in size, but will also not have any outline or other non-printing information available in the original PDF.
+The trade-off is that after running removeRootEntries(), your assembled PDF is less likely to have errors (and may also be smaller in size), but it will no longer have an outline or any other non-printing information from the original PDF.
 
 ### Assembling a new PDF file from the the PDF structure object
 
@@ -178,7 +178,7 @@ newPdf
 
 ### PDF Assembler options
 
-PDF Assembler has a few options that will change its behavior. All options can be set any time after you have created a new PDFAssembler instance and before you have assembled your final pdf, like so:
+PDF Assembler has a few additional options that will change its behavior, primarily for debugging. After you have created a PDF Assembler instance, you can set these options like so:
 
 ```javascript
 newPdf.compress = false;
