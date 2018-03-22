@@ -13,6 +13,7 @@ import {
 } from 'pdfjs-dist/lib/shared/util';
 
 import { deflate } from 'pako';
+import * as queue from 'promise-queue';
 
 export type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array |
   Int32Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array;
@@ -21,12 +22,16 @@ export type BinaryFile = Blob | File | ArrayBuffer | TypedArray;
 
 export class PDFAssembler {
   pdfManager: any = null;
+  userPassword = '';
+  ownerPassword = '';
   nextNodeNum = 1;
   pdfTree: any = Object.create(null);
   recoveryMode = false;
   objCache: any = Object.create(null);
   objCacheQueue: any = Object.create(null);
-  promiseQueue: Promise<any> = Promise.resolve(true);
+  pdfManagerArrays = [];
+  pdfAssemblerArrays = [];
+  promiseQueue: any = new queue(1);
   indent: boolean|string|number = false;
   compress = true;
   encrypt = false; // not yet implemented
@@ -34,28 +39,30 @@ export class PDFAssembler {
   pageGroupSize = 16;
   pdfVersion = '1.7';
 
-  constructor(inputData?: BinaryFile|Object) {
+  constructor(inputData?: BinaryFile|Object, userPassword = '') {
+    if (userPassword.length) { this.userPassword = userPassword; }
     if (typeof inputData === 'object') {
       if (inputData instanceof Blob || inputData instanceof ArrayBuffer || inputData instanceof Uint8Array) {
-        this.promiseQueue = this.toArrayBuffer(inputData)
-          .then(arrayBuffer => this.pdfManager = new LocalPdfManager(1, arrayBuffer, '', {}, ''))
+        this.promiseQueue.add(() => this.toArrayBuffer(inputData)
+          .then(arrayBuffer => this.pdfManager = new LocalPdfManager(1, arrayBuffer, userPassword, {}, ''))
           .then(() => this.pdfManager.ensureDoc('checkHeader', []))
           .then(() => this.pdfManager.ensureDoc('parseStartXRef', []))
           .then(() => this.pdfManager.ensureDoc('parse', [this.recoveryMode]))
           .then(() => this.pdfManager.ensureDoc('numPages'))
           .then(() => this.pdfManager.ensureDoc('fingerprint'))
-          .then(() => this.pdfTree['/Root'] = this.resolveNodeRefs())
           .then(() => {
+            this.pdfTree['/Root'] = this.resolveNodeRefs();
             const infoDict = new Dict();
             infoDict._map = this.pdfManager.pdfDocument.documentInfo;
             this.pdfTree['/Info'] = this.resolveNodeRefs(infoDict);
             delete this.pdfTree['/Info']['/IsAcroFormPresent'];
             delete this.pdfTree['/Info']['/IsXFAPresent'];
             delete this.pdfTree['/Info']['/PDFFormatVersion'];
-            this.pdfTree['/Info']['/Producer'] = '(pdfAssembler — www.pdfcircus.com)';
+            this.pdfTree['/Info']['/Producer'] = '(PDF Assembler — www.pdfcircus.com)';
             this.pdfTree['/Info']['/ModDate'] = '(' + this.toPdfDate() + ')';
+            this.flattenPageTree();
           })
-          .then(() => this.flattenPageTree());
+        );
       } else {
         this.pdfTree = inputData;
       }
@@ -63,10 +70,9 @@ export class PDFAssembler {
       this.pdfTree = {
         'documentInfo': {},
         '/Info': {
-          '/Producer': '(pdfAssembler (www.pdfcircus.com))',
+          '/Producer': '(PDF Assembler — www.pdfcircus.com)',
           '/CreationDate': '(' + this.toPdfDate() + ')',
           '/ModDate': '(' + this.toPdfDate() + ')',
-          '/Trapped': '/False',
         },
         '/Root': {
           '/Type': '/Catalog',
@@ -89,16 +95,15 @@ export class PDFAssembler {
   }
 
   get pdfDocument(): Promise<PDFDocument> {
-    return this.promiseQueue.then(() => this.pdfManager && this.pdfManager.pdfDocument);
+    return this.promiseQueue.add(() => Promise.resolve(this.pdfManager && this.pdfManager.pdfDocument));
   }
 
   get numPages(): Promise<number> {
-    return this.promiseQueue.then(() => this.pdfTree['/Root']['/Pages']['/Count']);
-    // this.pdfManager && this.pdfManager.pdfDocument && this.pdfManager.pdfDocument.numPages
+    return this.promiseQueue.add(() => Promise.resolve(this.pdfTree['/Root']['/Pages']['/Count']));
   }
 
   get pdfObject() {
-    return this.promiseQueue.then(() => this.pdfTree);
+    return this.promiseQueue.add(() => Promise.resolve(this.pdfTree));
   }
 
   toArrayBuffer(file: BinaryFile): Promise<ArrayBuffer> {
@@ -155,11 +160,18 @@ export class PDFAssembler {
     } else if (typeof node === 'string') {
       return `(${node})`;
     } else if (node instanceof Array) {
-      const arrayNode = [];
-      node.forEach((element, index) => arrayNode.push(
-        this.resolveNodeRefs(element, index, arrayNode, contents)
-      ));
-      return arrayNode;
+      const existingArrayIndex = this.pdfManagerArrays.indexOf(node);
+      if (existingArrayIndex > -1) {
+        return this.pdfAssemblerArrays[existingArrayIndex];
+      } else {
+        const newArrayNode = [];
+        this.pdfManagerArrays.push(node);
+        this.pdfAssemblerArrays.push(newArrayNode);
+        node.forEach((element, index) => newArrayNode.push(
+          this.resolveNodeRefs(element, index, newArrayNode, contents)
+        ));
+        return newArrayNode;
+      }
     } else if (typeof node === 'object' && node !== null) {
       const objectNode: any = Object.create(null);
       let source = null;
@@ -183,16 +195,28 @@ export class PDFAssembler {
           }
         }
         if (!objectNode.stream) {
-          const checkStream = (streamSource) => {
-            if (streamSource instanceof Stream || streamSource instanceof DecryptStream) {
-              source = streamSource;
+          for (const checkSource of [
+            node, node.stream, node.stream && node.stream.str,
+            node.str, node.str && node.str.str
+          ]) {
+            if (checkSource instanceof Stream || checkSource instanceof DecryptStream) {
+              source = checkSource;
+              break;
             }
-          };
-          if (!source) { checkStream(node); }
-          if (!source) { checkStream(node.stream); }
-          if (!source) { checkStream(node.stream && node.stream.str); }
-          if (!source) { checkStream(node.str); }
-          if (!source) { checkStream(node.str && node.str.str); }
+          }
+          // const checkStream = (streamSource) => {
+          //   if (!source && (
+          //     streamSource instanceof Stream ||
+          //     streamSource instanceof DecryptStream
+          //   )) {
+          //     source = streamSource;
+          //   }
+          // };
+          // checkStream(node);
+          // checkStream(node.stream);
+          // checkStream(node.stream && node.stream.str);
+          // checkStream(node.str);
+          // checkStream(node.str && node.str.str);
           if (source) {
             source.reset();
             objectNode.stream = source.getBytes();
@@ -203,17 +227,8 @@ export class PDFAssembler {
         if (contents || objectNode['/Subtype'] === '/XML' ||
           (objectNode.stream && objectNode.stream.every(byte => byte < 128))
         ) {
-          // if (contents) { objectNode.contents = objectNode.stream; }
-          // TODO: remove unneeded spaces in command streams
-          // (but NOT in text strings inside command streams)
-          // --or-- split command streams into command arrays?
+          // TODO: split command stream into array of commands?
           objectNode.stream = bytesToString(objectNode.stream);
-            // .replace(/\s*\n\s*/g, '\n').replace(/\s*\r\s*/g, '\n')
-            // .replace(/\s\s+/g, ' ').replace(/\s\s+/g, ' ').replace(/\s*\/\s*/g, '/')
-            // .replace(/\s*\(\s*/g, '(').replace(/\s*\)\s*/g, ')')
-            // .replace(/\s*\[\s*/g, '[').replace(/\s*\]\s*/g, ']')
-            // .replace(/\s*\{\s*/g, '{').replace(/\s*\}\s*/g, '}')
-            // .replace(/[ \t\v\f]*<\s*/g, '<').replace(/\s*>[ \t\v\f]*/g, '>');
         }
         delete objectNode['/Length'];
       }
@@ -364,7 +379,7 @@ export class PDFAssembler {
   }
 
   assemblePdf(nameOrOutputFormat = 'output.pdf'): Promise<File|ArrayBuffer|Uint8Array> {
-    return this.promiseQueue = this.promiseQueue.then(() => {
+    return this.promiseQueue.add(() => new Promise((resolve, reject) => {
       const stringByteMap = [ // encodes string chars by byte code
         '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\007',
         '\\b', '\\t', '\\n', '\\013', '\\f', '\\r', '\\016', '\\017',
@@ -390,8 +405,10 @@ export class PDFAssembler {
       const space = !this.indent ? '' :
         typeof this.indent === 'number' ? ' '.repeat(this.indent) :
         typeof this.indent === 'string' ? this.indent :
-        '\t'; // this.indent = truthy
-      const newline = !this.indent ? '' : '\n';
+        '\t'; // if this.indent == truthy
+      // const newline = !this.indent ? '' : '\n';
+      const newline = '\n';
+      // TODO: If no indent, break lines longer than 255 characters
       this.flattenPageTree();
       this.groupPageTree();
       this.resetObjectIds();
@@ -402,15 +419,15 @@ export class PDFAssembler {
         if (nextIndent === true) { nextIndent = newline + space.repeat(depth); }
         let pdfObject = '';
 
-        // detect and encode names and strings
+        // detect and encode name or string
         if (typeof jsObject === 'string') {
           const firstChar = jsObject[0], lastChar = jsObject[jsObject.length - 1];
-          if (firstChar === '/') {
+          if (firstChar === '/') { // name
             // encode name chars: NUL, TAB, LF, FF, CR, space, #, %, (, ), /, <, >, [, ], {, }
             const encodeChar = (char: string) => '\0\t\n\f\r #%()/<>[]{}'.indexOf(char) === -1 ?
               char : `#${`0${char.charCodeAt(0).toString(16)}`.slice(-2)}`;
             pdfObject = `/${jsObject.slice(1).replace(/./g, encodeChar)}`;
-          } else if (firstChar === '(' && lastChar === ')') {
+          } else if (firstChar === '(' && lastChar === ')') { // string
             const byteArray = Array.from(arraysToBytes(jsObject.slice(1, -1)));
             const stringEncode = byteArray.map((byte: number) => stringByteMap[byte]).join('');
             if (stringEncode.length < byteArray.length * 2) {
@@ -423,7 +440,7 @@ export class PDFAssembler {
             pdfObject = jsObject;
           }
 
-        // convert true, false, and null to string
+        // convert true, false, null, or number to string
         } else if (typeof jsObject !== 'object' || jsObject === null) {
           pdfObject = jsObject === null || jsObject === undefined ? 'null' :
             jsObject === true ? 'true' :
@@ -499,7 +516,7 @@ export class PDFAssembler {
           // if nextIndent is set, indent item
           nextIndent ? nextIndent :
           // otherwise, check if item is first in an array, or starts with a delimiter character
-          // if not (nextIndent = ''), add a space to separate it from the previous item
+          // if not (if nextIndent = ''), add a space to separate it from the previous item
           nextIndent === false || ['/', '[', '(', '<'].includes(pdfObject[0]) ? '' : ' ';
         return prefix + pdfObject;
       };
@@ -531,13 +548,13 @@ export class PDFAssembler {
         `%%EOF\n`;
       const pdfData = arraysToBytes([header, ...indirectObjects.filter(o => o), xref, trailer]);
       switch (nameOrOutputFormat) {
-        case 'ArrayBuffer': return pdfData.buffer;
-        case 'Uint8Array': return pdfData;
+        case 'ArrayBuffer': resolve(pdfData.buffer); break;
+        case 'Uint8Array': resolve(pdfData); break;
         default:
           if (nameOrOutputFormat.slice(-4) !== '.pdf') { nameOrOutputFormat += '.pdf'; }
-          return new File([pdfData], nameOrOutputFormat, { type: 'application/pdf' });
+          resolve(new File([pdfData], nameOrOutputFormat, { type: 'application/pdf' }));
       }
-    });
+    }));
   }
 
   // utility functions from js.pdf:
