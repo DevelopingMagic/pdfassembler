@@ -8,9 +8,7 @@ import {
   DecodeStream, Stream, FlateStream, PredictorStream, DecryptStream,
   Ascii85Stream, RunLengthStream, LZWStream
 } from 'pdfjs-dist/lib/core/stream';
-import {
-  arraysToBytes, bytesToString, stringToPDFString
-} from 'pdfjs-dist/lib/shared/util';
+import { arraysToBytes, bytesToString } from 'pdfjs-dist/lib/shared/util';
 
 import { deflate } from 'pako';
 import * as queue from 'promise-queue';
@@ -58,7 +56,7 @@ export class PDFAssembler {
             delete this.pdfTree['/Info']['/IsAcroFormPresent'];
             delete this.pdfTree['/Info']['/IsXFAPresent'];
             delete this.pdfTree['/Info']['/PDFFormatVersion'];
-            this.pdfTree['/Info']['/Producer'] = '(PDF Assembler — www.pdfcircus.com)';
+            this.pdfTree['/Info']['/Producer'] = '(PDF Assembler)';
             this.pdfTree['/Info']['/ModDate'] = '(' + this.toPdfDate() + ')';
             this.flattenPageTree();
           })
@@ -70,7 +68,7 @@ export class PDFAssembler {
       this.pdfTree = {
         'documentInfo': {},
         '/Info': {
-          '/Producer': '(PDF Assembler — www.pdfcircus.com)',
+          '/Producer': '(PDF Assembler)',
           '/CreationDate': '(' + this.toPdfDate() + ')',
           '/ModDate': '(' + this.toPdfDate() + ')',
         },
@@ -257,8 +255,8 @@ export class PDFAssembler {
       this.pad(jsDate.getMinutes(), 2) +
       this.pad(jsDate.getSeconds(), 2) +
       (timezoneOffset < 0 ? '+' : '-') +
-      this.pad(Math.abs(Math.trunc(timezoneOffset / 60)), 2) +
-      '\'' + this.pad(Math.abs(timezoneOffset % 60), 2) + '\'';
+      this.pad(Math.abs(Math.trunc(timezoneOffset / 60)), 2) + '\'' +
+      this.pad(Math.abs(timezoneOffset % 60), 2) + '\'';
   }
 
   fromPdfDate(pdfDate) {

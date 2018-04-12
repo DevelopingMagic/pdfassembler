@@ -1,7 +1,7 @@
 # PDF Assembler
 
-[![npm version](https://img.shields.io/npm/v/pdfassembler.svg?style=plastic)](https://www.npmjs.com/package/pdfassembler) [![npm downloads](https://img.shields.io/npm/dm/pdfassembler.svg?style=plastic)](https://www.npmjs.com/package/pdfassembler) [![GitHub MIT License](https://img.shields.io/github/license/DevelopingMagic/pdf-assembler.svg?style=social)](https://github.com/DevelopingMagic/pdf-assembler)
-[![Dependencies](https://david-dm.org/DevelopingMagic/pdf-assembler.svg)](https://david-dm.org/DevelopingMagic/pdf-assembler) [![devDependencies](https://david-dm.org/DevelopingMagic/pdf-assembler/dev-status.svg)](https://david-dm.org/DevelopingMagic/pdf-assembler?type=dev)
+[![npm version](https://img.shields.io/npm/v/pdfassembler.svg?style=plastic)](https://www.npmjs.com/package/pdfassembler) [![npm downloads](https://img.shields.io/npm/dm/pdfassembler.svg?style=plastic)](https://www.npmjs.com/package/pdfassembler) [![GitHub MIT License](https://img.shields.io/github/license/DevelopingMagic/pdfassembler.svg?style=social)](https://github.com/DevelopingMagic/pdfassembler)
+[![Dependencies](https://david-dm.org/DevelopingMagic/pdfassembler.svg)](https://david-dm.org/DevelopingMagic/pdfassembler) [![devDependencies](https://david-dm.org/DevelopingMagic/pdfassembler/dev-status.svg)](https://david-dm.org/DevelopingMagic/pdfassembler?type=dev)
 
 The missing piece to edit PDF files directly in the browser.
 
