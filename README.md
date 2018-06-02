@@ -125,7 +125,7 @@ PDFAssembler = require('pdfassembler').PDFAssembler;
 
 ### Loading a PDF
 
-To us PDF Assembler, you must create a new PDF Assembler instance and initialize it, either with your own PDF structure object:
+To use PDF Assembler, you must create a new PDF Assembler instance and initialize it, either with your own PDF structure object:
 ```javascript
 // helloWorldPdf = the pdf object defined above
 const newPdf = new PDFAssembler(helloWorldPdf);
