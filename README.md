@@ -15,13 +15,15 @@ Actually PDF Assembler itself only does one thing — it assembles PDF files (he
 
 PDF is a complex format (the [ISO standard describing it](https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf) is 756 pages long). So PDF Assembler makes working with PDFs (somewhat) simpler by separating the physical structure of a PDF from its logical structure. In the future, PDF Assembler will likely offer better defaults for generating PDFs, such as cross-reference streams and compressing objects, as well as more options, such as to linearize or encrypt the output PDF. However, anything unrelated to the physical structure—like adding or editing pages, or even centering or wrapping text—will need to be done by the calling application or another library.
 
-### Alternatives
+### Prior Art and Alternatives
 
 If you want a library to simplify creating PDFs, in a browser or on a server, you can use [jsPDF](https://github.com/MrRio/jsPDF) or [PDFKit](https://github.com/devongovett/pdfkit).
 
 If you want to simplify editing existing PDFs on a server, you can use command line tools [QPDF](http://qpdf.sourceforge.net/) or [PDFTk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/), the Java tools [PDFBox](https://pdfbox.apache.org/) or [iText](https://github.com/ymasory/iText-4.2.0), or the Node module [Hummus](https://github.com/galkahana/HummusJS/wiki).
 
-If you want to simplify editing existing PDFs in a browser, I haven't found that library yet. This library helps, but still requires a good understanding of how the logical structure of a PDF works.
+If you want a simple way to edit existing PDFs in a browser, try [pdf-lib](https://github.com/Hopding/pdf-lib). This is a newer library, and not widely used yet, but it shows a lot of promise.
+
+PDF Assembler offers more direct control over the PDF structure than pdf-lib, but also requires a good understanding of how the logical structure of a PDF works.
 
 To learn more about logical structure of PDFs, I recommend O'Reilly's [PDF Explained](http://shop.oreilly.com/product/0636920021483.do). If you use this library, pdf.js and PDF Assembler will take care of reading and writing the raw bytes of the PDF, so you can skip to Chapter 4, "Document Structure".
 
@@ -32,9 +34,9 @@ Figure 4-1 shows the logical structure of a typical document. ([PDF Explained]((
 
 ## How it works - the PDF structure object
 
-PDF Assembler accepts or creates a PDF structure object, which is a specially formatted JavaScript object that represents the logical structure of a PDF document as simply as possible, by mapping each type of PDF data to its closest JavaScript counterpart:
+PDF Assembler accepts or creates a PDF structure object, which is a specially formatted JavaScript object that represents the logical structure of a PDF document as simply as possible, by mapping each type of PDF [COS](http://jimpravetz.com/blog/2012/12/in-defense-of-cos/) data to its closest JavaScript counterpart:
 
-| PDF data type | JavaScript data type                 |
+| COS data type | JavaScript data type                 |
 |---------------|--------------------------------------|
 | dictionary    | object                               |
 | array         | array                                |
