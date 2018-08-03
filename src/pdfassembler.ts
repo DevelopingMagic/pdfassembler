@@ -52,7 +52,7 @@ export class PDFAssembler {
             this.pdfTree['/Root'] = this.resolveNodeRefs();
             const infoDict = new Dict();
             infoDict._map = this.pdfManager.pdfDocument.documentInfo;
-            this.pdfTree['/Info'] = this.resolveNodeRefs(infoDict);
+            this.pdfTree['/Info'] = this.resolveNodeRefs(infoDict) || {};
             delete this.pdfTree['/Info']['/IsAcroFormPresent'];
             delete this.pdfTree['/Info']['/IsXFAPresent'];
             delete this.pdfTree['/Info']['/PDFFormatVersion'];
@@ -97,6 +97,7 @@ export class PDFAssembler {
   }
 
   get numPages(): Promise<number> {
+    this.promiseQueue.add(() => this.flattenPageTree());
     return this.promiseQueue.add(() => Promise.resolve(this.pdfTree['/Root']['/Pages']['/Count']));
   }
 
@@ -262,7 +263,7 @@ export class PDFAssembler {
   fromPdfDate(pdfDate) {
     if (pdfDate[0] === '(' && pdfDate[pdfDate.length - 1] === ')') { pdfDate = pdfDate.slice(1, -1); }
     if (pdfDate.slice(0, 2) !== 'D:') { return null; }
-    const part = (start, end, add = 0) =>  parseInt(pdfDate.slice(start, end), 10) + add;
+    const part = (start, end, offset = 0) =>  parseInt(pdfDate.slice(start, end), 10) + offset;
     return new Date(
       part(2, 6), part(6, 8, -1), part(8, 10),    // year, month, day
       part(10, 12), part(12, 14), part(14, 16), 0 // hours, minutes, seconds
@@ -364,9 +365,11 @@ export class PDFAssembler {
       if (node instanceof Array) {
         node.filter(toReset).forEach(item => this.resetObjectIds(item));
       } else {
-        if (typeof node.num === 'number' || node.stream ||
-          ['/Catalog', '/Pages', '/OCG'].includes(node['/Type'])
-        ) {
+        const makeIndirect = [
+          '/AcroForm', '/MarkInfo', '/Metadata', '/Names', '/Outlines', '/StructTreeRoot',
+          '/ViewerPreferences', '/Catalog', '/Pages', '/OCG'
+        ];
+        if (typeof node.num === 'number' || node.stream || makeIndirect.includes(node['/Type'])) {
           Object.assign(node, { num: this.nextNodeNum++, gen: 0 });
         }
         Object.keys(node)
@@ -404,14 +407,15 @@ export class PDFAssembler {
         typeof this.indent === 'number' ? ' '.repeat(this.indent) :
         typeof this.indent === 'string' ? this.indent :
         '\t'; // if this.indent == truthy
-      // const newline = !this.indent ? '' : '\n';
-      const newline = '\n';
+      const newline = !this.indent ? '' : '\n';
+      // const newline = '\n';
       // TODO: If no indent, break lines longer than 255 characters
       this.flattenPageTree();
       this.groupPageTree();
       this.resetObjectIds();
       this.pdfTree['/Root']['/Version'] = `/${this.pdfVersion}`; // default: 1.7
       const indirectObjects: any[] = []; // initialize object cache
+
       // create new PDF object from JavaScript object
       const newPdfObject = (jsObject, depth = 0, nextIndent: string|boolean = true) => {
         if (nextIndent === true) { nextIndent = newline + space.repeat(depth); }
@@ -466,17 +470,19 @@ export class PDFAssembler {
             depth = 0;
 
             // compress stream?
-            if (jsObject.stream && jsObject.stream.length) {
-              if (this.compress && !jsObject['/Filter']) {
+            if (jsObject.hasOwnProperty('stream')) {
+              if (jsObject.stream.length) {
+                if (this.compress && !jsObject['/Filter']) {
 
-                // If stream is not already compressed, compress it
-                const compressedStream = deflate(arraysToBytes([jsObject.stream]));
+                  // If stream is not already compressed, compress it
+                  const compressedStream = deflate(arraysToBytes([jsObject.stream]));
 
-                // but use compressed version only if it is smaller overall
-                // (+ 19 for additional '/Filter/FlateDecode' dict entry)
-                if (compressedStream.length + 19 < jsObject.stream.length) {
-                  jsObject.stream = compressedStream;
-                  jsObject['/Filter'] = '/FlateDecode';
+                  // but use compressed version only if it is smaller overall
+                  // (+ 19 for additional '/Filter/FlateDecode' dict entry)
+                  if (compressedStream.length + 19 < jsObject.stream.length) {
+                    jsObject.stream = compressedStream;
+                    jsObject['/Filter'] = '/FlateDecode';
+                  }
                 }
               }
               jsObject['/Length'] = jsObject.stream.length;
@@ -495,10 +501,14 @@ export class PDFAssembler {
 
           // finish and save indirect object
           if (typeof jsObject.num === 'number') {
-            if (jsObject.stream && jsObject.stream.length) {
-              const streamPrefix = `${pdfObject}${newline}stream\n`;
-              const streamSuffix = `${newline}endstream\nendobj\n`;
-              pdfObject = arraysToBytes([streamPrefix, jsObject.stream, streamSuffix]);
+            if (jsObject.hasOwnProperty('stream')) {
+              if (jsObject.stream.length) {
+                const streamPrefix = `${pdfObject}${newline}stream\n`;
+                const streamSuffix = `${newline}endstream\nendobj\n`;
+                pdfObject = arraysToBytes([streamPrefix, jsObject.stream, streamSuffix]);
+              } else {
+                pdfObject += `${newline}stream\nendstream\nendobj\n`;
+              }
             } else {
               pdfObject += `${newline}endobj\n`;
             }
