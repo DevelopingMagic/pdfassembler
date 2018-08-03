@@ -127,7 +127,7 @@ PDFAssembler = require('pdfassembler').PDFAssembler;
 
 ### Loading a PDF
 
-To us PDF Assembler, you must create a new PDF Assembler instance and initialize it, either with your own PDF structure object:
+To use PDF Assembler, you must create a new PDF Assembler instance and initialize it, either with your own PDF structure object:
 ```javascript
 // helloWorldPdf = the pdf object defined above
 const newPdf = new PDFAssembler(helloWorldPdf);
@@ -141,13 +141,13 @@ const newPdf = new PDFAssembler(binaryPDF);
 
 ### Editing the PDF object
 
-After you've created a new new PDF Assembler instance, you can request a promise with the PDF structure object, and then edit it.
+After you've created a new PDF Assembler instance, you can request a promise with the PDF structure object, and then edit it.
 (Some of PDF Assembler's actions are asynchronous, so it's necessary to use a promise to make sure the PDF is fully loaded before you edit it.)
 
 For example, here is how to edit a PDF to remove all but the first page:
 ```javascript
 newPdf
-  .pdfObject()
+  .pdfObject
   .then(function(pdf) {
     pdf['/Root']['/Pages']['/Kids'] = pdf['/Root']['/Pages']['/Kids'].slice(0, 1);
   });
