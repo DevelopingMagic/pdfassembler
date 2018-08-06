@@ -1,6 +1,6 @@
 {
   "name": "pdfassembler",
-  "version": "0.1.0-beta.7",
+  "version": "0.1.0-beta.8",
   "description": "The missing piece to edit PDF files directly in the browser. Disassembles PDFs to edtable JavaScript objects, then assembles them back into PDF files.",
   "author": "David Schnell-Davis",
   "license": "MIT",

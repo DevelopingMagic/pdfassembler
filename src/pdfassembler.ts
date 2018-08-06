@@ -1,7 +1,7 @@
 import { PDFDocument } from 'pdfjs-dist/lib/core/document';
-import { Jbig2Stream } from 'pdfjs-dist/lib/core/jbig2_stream';
-import { JpegStream } from 'pdfjs-dist/lib/core/jpeg_stream';
-import { Lexer, Parser } from 'pdfjs-dist/lib/core/parser';
+// import { Jbig2Stream } from 'pdfjs-dist/lib/core/jbig2_stream';
+// import { JpegStream } from 'pdfjs-dist/lib/core/jpeg_stream';
+// import { Lexer, Parser } from 'pdfjs-dist/lib/core/parser';
 import { PDFManager, LocalPdfManager } from 'pdfjs-dist/lib/core/pdf_manager';
 import { Dict, Name, Ref } from 'pdfjs-dist/lib/core/primitives';
 import {
@@ -19,7 +19,7 @@ export type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array |
 export type BinaryFile = Blob | File | ArrayBuffer | TypedArray;
 
 export class PDFAssembler {
-  pdfManager: any = null;
+  pdfManager: PDFManager = null;
   userPassword = '';
   ownerPassword = '';
   nextNodeNum = 1;
@@ -102,6 +102,19 @@ export class PDFAssembler {
   }
 
   get pdfObject() {
+    return this.promiseQueue.add(() => Promise.resolve(this.pdfTree));
+  }
+
+  getPDFDocument(): Promise<PDFDocument> {
+    return this.promiseQueue.add(() => Promise.resolve(this.pdfManager && this.pdfManager.pdfDocument));
+  }
+
+  countPages(): Promise<number> {
+    this.promiseQueue.add(() => this.flattenPageTree());
+    return this.promiseQueue.add(() => Promise.resolve(this.pdfTree['/Root']['/Pages']['/Count']));
+  }
+
+  getPDFStructure(): Promise<any> {
     return this.promiseQueue.add(() => Promise.resolve(this.pdfTree));
   }
 
@@ -241,11 +254,11 @@ export class PDFAssembler {
     }
   }
 
-  pad(number, digits) {
+  pad(number, digits): string {
     return ('0'.repeat(digits - 1) + parseInt(number, 10)).slice(-digits);
   }
 
-  toPdfDate(jsDate = new Date()) {
+  toPdfDate(jsDate = new Date()): string {
     if (!(jsDate instanceof Date)) { return null; }
     const timezoneOffset = jsDate.getTimezoneOffset();
     return 'D:' +
@@ -260,7 +273,8 @@ export class PDFAssembler {
       this.pad(Math.abs(timezoneOffset % 60), 2) + '\'';
   }
 
-  fromPdfDate(pdfDate) {
+  fromPdfDate(pdfDate: string): Date {
+    if (typeof pdfDate !== 'string') { return null; }
     if (pdfDate[0] === '(' && pdfDate[pdfDate.length - 1] === ')') { pdfDate = pdfDate.slice(1, -1); }
     if (pdfDate.slice(0, 2) !== 'D:') { return null; }
     const part = (start, end, offset = 0) =>  parseInt(pdfDate.slice(start, end), 10) + offset;
@@ -470,7 +484,7 @@ export class PDFAssembler {
             depth = 0;
 
             // compress stream?
-            if (jsObject.hasOwnProperty('stream')) {
+            if (typeof jsObject.stream !== 'undefined') {
               if (jsObject.stream.length) {
                 if (this.compress && !jsObject['/Filter']) {
 
@@ -501,7 +515,7 @@ export class PDFAssembler {
 
           // finish and save indirect object
           if (typeof jsObject.num === 'number') {
-            if (jsObject.hasOwnProperty('stream')) {
+            if (typeof jsObject.stream !== 'undefined') {
               if (jsObject.stream.length) {
                 const streamPrefix = `${pdfObject}${newline}stream\n`;
                 const streamSuffix = `${newline}endstream\nendobj\n`;
