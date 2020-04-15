@@ -157,7 +157,7 @@ newPdf
   });
 ```
 
-Notice that there is no API— you're directly editing the PDF structure object. This gives you absolute control over all aspects of the PDF, so you can add or change anything. But it also means it's easy to create invalid PDFs that won't open correctly, so you'll have to be careful.
+Notice that there is no API — you're directly editing the PDF structure object. This gives you absolute control over all aspects of the PDF, so you can add or change anything. But it also means it's easy to create invalid PDFs that won't open correctly, so you'll have to be careful.
 
 For example, removing all but the first page, as shown above, then outputting the assembled result will work fine for many PDFs and give you a functional 1-page PDF. However, some originals (e.g. with an outline or other reference to the deleted pages) will cause the output PDF to open with errors (unless the references are removed, as explained next).
 
@@ -169,9 +169,9 @@ PDF Assembler does a good job managing page contents, and will automatically dis
 newPdf.removeRootEntries();
 ```
 
-The trade-off is that after running removeRootEntries(), your assembled PDF is less likely to have errors (and may also be smaller in size), but it will also no longer have an outline or any other non-printing information from the original PDF. This can be both useful (e.g. if you want to remove all metadata) and harmful (e.g. if you wanted to keep the outline from the original), so use it carefully.
+The trade-off is that after running `removeRootEntries()`, your assembled PDF is less likely to have errors (and may also be smaller in size), but it will also no longer have an outline or any other non-printing information from the original PDF. This can be both useful (e.g. if you want to remove all metadata) and harmful (e.g. if you wanted to keep the outline from the original), so use it carefully.
 
-For more control, you can also call removeRootEntries() with an array of the root objects to remove. For example, you can remove /Outlines and /PageLabels, while leaving /Metadata and any other objects alone, like so:
+For more control, you can also call `removeRootEntries()` with an array of the root objects to remove. For example, you can remove /Outlines and /PageLabels, while leaving /Metadata and any other objects alone, like so:
 
 ```javascript
 newPdf.removeRootEntries(['/Outlines', '/PageLabels']);
@@ -179,7 +179,7 @@ newPdf.removeRootEntries(['/Outlines', '/PageLabels']);
 
 The default, if you don't specify what to remove, is to remove all /Root objects except /Type and /Pages.
 
-### Assembling a new PDF file from the the PDF structure object
+### Assembling a new PDF file from the PDF structure object
 
 After editing, call assemblePdf() with a name for your new PDF, and PDF Assembler will assemble your PDF structure object and return a promise for a [File](https://developer.mozilla.org/en-US/docs/Web/API/File) containing your PDF, ready to download or save.
 
@@ -210,7 +210,7 @@ newPdf.indent = true;
 | groupPages    | true    | If true, groups pages in output PDF.       |
 | pageGroupSize | 16      | Sets size of largest page group. (Has no effect if groupPages is false.) |
 
-Finally, here are all the PDF Assembler methods. Most were designed to be used internally—so normally you should only need to call getPDFStructure(), assemblePdf(), and possibly removeRootEntries(), as described above. But other methods may be useful for development or debugging, so here's the whole list:
+Finally, here are all the PDF Assembler methods. Most were designed to be used internally — so normally you should only need to call `getPDFStructure()`, `assemblePdf()`, and possibly `removeRootEntries()`, as described above. But other methods may be useful for development or debugging, so here's the whole list:
 
 | method              | parameters | description                                |
 |---------------------|------------|--------------------------------------------|
