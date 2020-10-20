@@ -543,6 +543,8 @@ export class PDFAssembler {
         return prefix + pdfObject;
       };
       const rootRef = newPdfObject(this.pdfTree['/Root'], 0, false);
+      this.pdfTree['/Info'].gen = 0;
+      this.pdfTree['/Info'].num = this.nextNodeNum++;
       const infoRef = this.pdfTree['/Info'] && Object.keys(this.pdfTree['/Info']).length ?
         newPdfObject(this.pdfTree['/Info'], 0, false) : null;
       const header =
